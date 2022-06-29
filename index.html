@@ -1,0 +1,233 @@
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <script src="https://unpkg.com/three@0.137.4/build/three.min.js"></script>
+    <script src="https://unpkg.com/three@0.137.4/examples/js/controls/OrbitControls.js"></script>
+  </head>
+<body>
+    <h2>制作課題</h2><br>
+    １．タイトル：人生ゲーム<br>
+    ２．説明：人生ゲームのマップを再現してみた。<br>
+    　　　　　マップはplaneにTextureLoaded()で自作のマップ画像を貼り付けた。<br>
+    　　　　　サイコロも同じくsaiにサイコロの面の画像を一面ずつ貼り付けている。<br>
+    　　　　　ルーレットの画像も同じくmaruにping画像を貼り付けている。<br>
+    　　　　　宝箱、車、タイヤはGroup()でグループ化されている。<br>
+    　　　　　Update()内にサイコロの動き、車の動き、ルーレットの動きが書かれている。<br>
+    　　　　　Update()内のif文は、車がある座標を超えると、サイコロの動きと車の向きを変える処理である。<br>
+    <script type="text/javascript">
+      let i = 0;
+      
+      window.addEventListener('DOMContentLoaded', init);
+
+      function init() {
+        
+        const width = 800
+        const height = 600;
+
+        var renderer = new THREE.WebGLRenderer();
+        document.body.appendChild(renderer.domElement);
+        renderer.setSize(width, height);
+
+        renderer.shadowMap.enabled = true;
+
+        const scene = new THREE.Scene();
+
+        const camera = new THREE.PerspectiveCamera(45, width / height);
+        camera.rotation.set(0, Math.PI/2, 0);
+        camera.position.set(0, 0.1, 5);
+
+        const controls = new THREE.OrbitControls(camera, document.body); 
+        
+        var directionalLight1 = new THREE.DirectionalLight(0xffffff);
+        directionalLight1.position.set(10, 10, 10);
+        scene.add(directionalLight1);
+       
+        var light = new THREE.SpotLight(0xffffff, 1, 100, Math.PI / 20, 0.2);
+        light.position.set(0 ,10, 15);
+        light.castShadow = true;
+        scene.add(light);
+
+        var textureloaded = new THREE.TextureLoader();
+        var texture = textureloaded.load("maps.jpg");
+        var material = new THREE.MeshPhongMaterial();
+        material.map = texture;
+
+        var rtexture = textureloaded.load("deme.png");
+        var rmaterial = new THREE.MeshLambertMaterial();
+        rmaterial.map = rtexture;
+
+        var materials = [
+          new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("saikoro-illust1.png")}),
+          new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("saikoro-illust2.png")}),
+          new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("sai3.png")}),
+          new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("saikoro-illust4.png")}),
+          new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("saikoro^illust5.png")}),
+          new THREE.MeshLambertMaterial({map:THREE.ImageUtils.loadTexture("saikoro-illust6.png")}),
+        ];
+
+        var geometry = new THREE.PlaneGeometry(3, 3, 10, 10);
+        var plane = new THREE.Mesh(geometry, material);
+        plane.rotation.set( -Math.PI/2, 0, 0 );
+        plane.position.set(0, 0, 0);
+        plane.receiveShadow = true;
+        scene.add(plane);
+
+        var cgeometry = new THREE.CylinderGeometry(0.5, 0.5, 0.2, 40);
+        var maru = new THREE.Mesh(cgeometry, rmaterial);
+        maru.position.set(0, 0.1, 0);
+        maru.castShadow = true;
+        scene.add(maru);
+
+        var cgeometry2 = new THREE.CylinderGeometry(0.1, 0.3, 0.6, 40);
+        var cmaterial = new THREE.MeshLambertMaterial({color: 0xffffff});
+        var tumami = new THREE.Mesh(cgeometry2, cmaterial);
+        tumami.position.set(0, 0.3, 0);
+        tumami.castShadow = true;
+        scene.add(tumami);
+        
+        var bgeometry = new THREE.BoxGeometry(0.2, 0.2, 0.4);
+        var bmaterial = new THREE.MeshLambertMaterial({color: 0x0000ff});
+        var cbody = new THREE.Mesh(bgeometry, bmaterial);
+        cbody.position.set(0, 1, 0);
+        cbody.castShadow = true;
+
+        var bgeometry2 = new THREE.BoxGeometry(0.1, 0.15, 0.1);
+        var cbody2 = new THREE.Mesh(bgeometry2, bmaterial);
+        cbody2.position.set(0, 1.15, 0);
+        cbody2.castShadow = true;
+
+        var wgeometry = new THREE.TorusGeometry(0.02, 0.05, 3, 6);
+        var wmaterial = new THREE.MeshLambertMaterial({color: 0x0000ff});
+        var wheel = new THREE.Mesh(wgeometry, wmaterial);
+        wheel.position.set(-0.15, 0.9, 0.1);
+        wheel.rotation.set(0 , Math.PI/2, 0);
+        wheel.castShadow = true;
+
+        var wheel2 = new THREE.Mesh(wgeometry, wmaterial);
+        wheel2.position.set(0.15, 0.9, 0.1);
+        wheel2.rotation.set(0 , Math.PI/2, 0);
+        wheel2.castShadow = true;
+
+        var wheel3 = new THREE.Mesh(wgeometry, wmaterial);
+        wheel3.position.set(-0.15, 0.9, -0.15);
+        wheel3.rotation.set(0 , Math.PI/2, 0);
+        wheel3.castShadow = true;
+
+        var wheel4 = new THREE.Mesh(wgeometry, wmaterial);
+        wheel4.position.set(0.15, 0.9, -0.15);
+        wheel4.rotation.set(0 , Math.PI/2, 0);
+        wheel4.castShadow = true;
+
+        var bgeometry2 = new THREE.BoxGeometry(0.4, 0.2, 0.2);
+        var bmaterial2 = new THREE.MeshLambertMaterial({color: 0x692927});
+        var hako = new THREE.Mesh(bgeometry2, bmaterial2);
+        hako.position.set(1.3, 0.2, 0);
+        hako.rotation.set(0, Math.PI/2, 0);
+        hako.castShadow = true;
+
+        var cgeometry2 = new THREE.CylinderGeometry(0.1, 0.1, 0.4, 40);
+        var cmaterial2 = new THREE.MeshLambertMaterial({color: 0x692927});
+        var hako2 = new THREE.Mesh(cgeometry2, cmaterial2);
+        hako2.rotation.set(Math.PI/2, 0, 0);
+        hako2.position.set(1.3, 0.3, 0);
+        hako2.castShadow = true;
+
+        var cgeometry3 = new THREE.BoxGeometry(0.25, 0.05, 0.45);
+        var cmaterial3 = new THREE.MeshLambertMaterial({color: 0xffd700});
+        var waku = new THREE.Mesh(cgeometry3, cmaterial3);
+        hako.rotation.set(0, Math.PI/2, 0);
+        waku.position.set(1.3, 0.25, 0);
+        waku.castShadow = true;
+
+        const taiya = new THREE.Group();
+        taiya.add(wheel);
+        taiya.add(wheel2);
+        taiya.add(wheel3);
+        taiya.add(wheel4);
+    
+        const car = new THREE.Group();
+        car.add(cbody);
+        car.add(cbody2);
+        car.add(taiya);
+        car.position.set(-1, -0.85, -1.2);
+        scene.add(car);
+
+        const tbox = new THREE.Group();
+        tbox.add(hako);
+        tbox.add(hako2);
+        tbox.add(waku);
+        tbox.position.y -= 0.1;
+        scene.add(tbox);
+
+        var bgeometry = new THREE.BoxGeometry(0.5, 0.5, 0.5);
+        var smaterial = new THREE.MeshFaceMaterial(materials);
+        var sai = new THREE.Mesh(bgeometry, smaterial);
+        sai.position.set(-2, 2, -1.5);
+        scene.add(sai);
+
+        update();
+
+        function update() {
+          
+          renderer.render(scene, camera);
+          requestAnimationFrame(update);
+
+          wheel.rotation.x += 0.02;
+          wheel2.rotation.x += 0.02;
+          wheel3.rotation.x += 0.02;
+          wheel4.rotation.x += 0.02;
+          
+          sai.rotation.x += 0.01;
+          sai.rotation.z += 0.01;
+
+          tumami.rotation.y += 0.02;
+          maru.rotation.y += 0.02;
+
+          if(i == 0)
+          {
+            car.position.z += 0.02;
+            sai.position.y -= 0.012;
+
+            if(car.position.z > 1)
+            {
+                car.rotation.y = Math.PI / 2;
+                i = 1;
+            }
+          }else if(i == 1){
+
+            car.position.x += 0.02;
+            sai.position.y += 0.012;
+
+            if(car.position.x > 1)
+            {
+                car.rotation.y += Math.PI / 2;
+                i = 2;
+            }
+          }else if(i == 2){
+
+            car.position.z -= 0.02;
+            sai.position.y -= 0.012;
+
+            if(car.position.z < -1)
+            {
+                car.rotation.y += Math.PI / 2;
+                i = 3;
+            }
+
+          }else if(i == 3){
+
+            car.position.x -= 0.02;
+            sai.position.y += 0.012;
+
+            if(car.position.x < -1)
+            {
+                car.rotation.y += Math.PI / 2;
+                i = 0;
+            }
+
+          }
+        }
+      }
+    </script>
+</body>
+</html>
